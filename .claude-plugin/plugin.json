@@ -1,0 +1,8 @@
+{
+  "name": "surgical-cv-skills",
+  "version": "1.0.0",
+  "description": "Design surgical-video computer-vision studies before data collection: procedure profile -> CV task -> Metrics Reloaded metric selection -> annotation, split, aggregation and reporting plan (Korean-language skills).",
+  "author": { "name": "Jeong-Moo Lee" },
+  "license": "MIT",
+  "keywords": ["surgical data science", "surgical video", "computer vision", "Metrics Reloaded", "study design", "cholecystectomy"]
+}

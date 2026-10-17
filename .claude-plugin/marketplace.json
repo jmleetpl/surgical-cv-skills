@@ -1,0 +1,13 @@
+{
+  "name": "surgical-cv-skills",
+  "owner": { "name": "Jeong-Moo Lee" },
+  "metadata": { "description": "Skills for designing surgical-video computer-vision studies." },
+  "plugins": [
+    {
+      "name": "surgical-cv-skills",
+      "source": "./",
+      "description": "General surgical CV study design + cholecystectomy-specific design skill, grounded in Metrics Reloaded (Nature Methods 2024).",
+      "category": "research"
+    }
+  ]
+}
