@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수술영상 CV 연구설계 튜토리얼</title>
+<meta name="description" content="surgical-cv-skills 따라 하기: 설치부터 수술 프로파일, 지표 선택, 레드플래그 점검까지">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --bg:#fbfaf7; --surface:#ffffff; --surface-2:#f3f1ec; --text:#1d1c1a; --muted:#6b675f; --line:#e4e0d8;
+  --accent:#0f6b5c; --accent-soft:#e3f1ee; --warn:#9a5b00; --warn-soft:#fbf0dc; --bad:#a3372f; --bad-soft:#f8e4e1;
+  --code:#f1eee8; --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151513; --surface:#1d1d1a; --surface-2:#252521; --text:#ecebe6; --muted:#a29e94; --line:#34332e;
+  --accent:#5cc4ae; --accent-soft:#17312b; --warn:#e2a64b; --warn-soft:#33270f; --bad:#ec8a80; --bad-soft:#3a1d1a;
+  --code:#262622; --shadow:none;}}
+:root[data-theme="dark"]{
+  --bg:#151513; --surface:#1d1d1a; --surface-2:#252521; --text:#ecebe6; --muted:#a29e94; --line:#34332e;
+  --accent:#5cc4ae; --accent-soft:#17312b; --warn:#e2a64b; --warn-soft:#33270f; --bad:#ec8a80; --bad-soft:#3a1d1a;
+  --code:#262622; --shadow:none;}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em}
+code{background:var(--code);padding:.1em .35em;border-radius:4px}
+.wrap{display:grid;grid-template-columns:240px minmax(0,1fr);gap:40px;max-width:1120px;margin:0 auto;padding:32px 24px 80px}
+nav.toc{position:sticky;top:24px;align-self:start;font-size:14px}
+nav.toc .brand{font-weight:700;margin-bottom:12px}
+nav.toc ol{list-style:none;margin:0;padding:0;counter-reset:s}
+nav.toc li{counter-increment:s}
+nav.toc a{display:flex;gap:10px;align-items:center;padding:6px 8px;border-radius:6px;color:var(--muted);text-decoration:none}
+nav.toc a::before{content:counter(s);display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);font-size:12px;flex:none}
+nav.toc a.active{color:var(--text);background:var(--surface-2)}
+nav.toc a.active::before{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+nav.toc .progress{margin-top:16px;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+nav.toc .progress span{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.themebtn{margin-top:16px;font:inherit;font-size:13px;background:none;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:4px 10px;cursor:pointer}
+header.hero h1{font-size:34px;line-height:1.25;margin:0 0 12px;letter-spacing:-.01em}
+header.hero p.lead{font-size:18px;color:var(--muted);margin:0 0 20px;max-width:46em}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--muted);background:var(--surface)}
+section.step{padding-top:28px;margin-top:28px;border-top:1px solid var(--line)}
+section.step h2{font-size:24px;margin:0 0 6px;letter-spacing:-.01em}
+.kicker{font-size:13px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+.goal{color:var(--muted);margin:0 0 18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;box-shadow:var(--shadow);margin:14px 0}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:14px;background:none;border:none;border-bottom:2px solid transparent;padding:8px 12px;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent);font-weight:600}
+.panel[hidden]{display:none}
+.codeblock{position:relative;background:var(--code);border:1px solid var(--line);border-radius:8px;margin:10px 0}
+.codeblock pre{margin:0;padding:14px 16px;overflow-x:auto;white-space:pre}
+.copy{position:absolute;top:8px;right:8px;font:inherit;font-size:12px;background:var(--surface);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer}
+.copy.done{color:var(--accent);border-color:var(--accent)}
+.note{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0;font-size:15px}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+.note.bad{border-color:var(--bad);background:var(--bad-soft)}
+label.field{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+select{font:inherit;font-size:15px;width:100%;max-width:420px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text)}
+dl.kv{display:grid;grid-template-columns:150px minmax(0,1fr);gap:8px 16px;margin:14px 0 0}
+dl.kv dt{color:var(--muted);font-size:14px}
+dl.kv dd{margin:0}
+.checklist{list-style:none;padding:0;margin:0}
+.checklist li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--line)}
+.checklist li:last-child{border-bottom:none}
+.checklist input{margin-top:5px;width:16px;height:16px;accent-color:var(--accent);flex:none}
+.checklist .code{font-weight:700;font-size:13px;color:var(--muted);min-width:38px}
+.counter{font-size:14px;color:var(--muted)}
+.toggles{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.toggle{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface);cursor:pointer;font-size:15px}
+.toggle input{margin-top:5px;accent-color:var(--accent)}
+.toggle small{display:block;color:var(--muted);font-size:12.5px}
+#fp-out li{margin:6px 0}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:18px 0}
+.flow div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13.5px;text-align:center}
+.flow b{display:block;font-size:12px;color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600}
+.tablewrap{overflow-x:auto}
+.next{display:inline-block;margin-top:10px;font-size:14px}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media (max-width:860px){
+  .wrap{grid-template-columns:1fr;gap:0;padding:20px 16px 60px}
+  nav.toc{position:static;margin-bottom:8px}
+  nav.toc ol{display:flex;overflow-x:auto;gap:4px}
+  nav.toc a{white-space:nowrap}
+  .flow{grid-template-columns:1fr 1fr}
+  dl.kv{grid-template-columns:1fr}
+  header.hero h1{font-size:27px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="toc" aria-label="튜토리얼 단계">
+  <div class="brand">surgical-cv-skills</div>
+  <ol id="toc">
+    <li><a href="#install">설치</a></li>
+    <li><a href="#first">첫 실행</a></li>
+    <li><a href="#profile">수술 프로파일</a></li>
+    <li><a href="#task">과제 → 문제유형</a></li>
+    <li><a href="#fingerprint">Fingerprint</a></li>
+    <li><a href="#apply">적용 계획</a></li>
+    <li><a href="#redflags">레드플래그</a></li>
+    <li><a href="#example">예시: 간절제</a></li>
+  </ol>
+  <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+  <button class="themebtn" id="themebtn" type="button">테마 전환</button>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="kicker">튜토리얼 · 약 15분</div>
+  <h1>수술영상 CV 연구, 데이터 모으기 전에 설계부터</h1>
+  <p class="lead">Claude 스킬 두 개로 <b>수술 프로파일 → CV 과제 → 지표 → 주석·분할·보고 계획</b>까지 담긴 설계서를 만듭니다.
+  이 페이지를 따라 하며 직접 설치하고, 각 단계에서 스킬이 무엇을 묻고 무엇을 결정하는지 미리 체험해 보세요.</p>
+  <div class="pills">
+    <span class="pill">근거: Metrics Reloaded (Nat Methods 2024)</span>
+    <span class="pill">Claude Code · claude.ai</span>
+    <span class="pill"><a href="https://github.com/jmleetpl/surgical-cv-skills">GitHub</a></span>
+  </div>
+  <div class="flow" aria-label="전체 흐름">
+    <div><b>1</b>수술 프로파일</div>
+    <div><b>2</b>임상 질문 → CV 과제</div>
+    <div><b>3</b>Fingerprint</div>
+    <div><b>4</b>지표·적용 계획</div>
+    <div><b>5</b>설계서 + 레드플래그</div>
+  </div>
+</header>
+
+<section class="step" id="install">
+  <div class="kicker">Step 1</div>
+  <h2>설치</h2>
+  <p class="goal">쓰는 환경을 고르고 명령을 복사해 실행하세요. 스킬은 두 개입니다: 범용 <code>surgical-cv-study-design</code>, 담낭절제 전용 <code>cholecystectomy-vision-study-design</code>.</p>
+  <div class="card">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="t-plugin">Claude Code (플러그인)</button>
+      <button role="tab" aria-selected="false" data-tab="t-mac">Mac/Linux 폴더 복사</button>
+      <button role="tab" aria-selected="false" data-tab="t-win">Windows</button>
+      <button role="tab" aria-selected="false" data-tab="t-web">claude.ai (웹)</button>
+    </div>
+    <div class="panel" id="t-plugin">
+      <p>터미널에서 두 줄이면 됩니다(권장).</p>
+      <div class="codeblock"><button class="copy">복사</button><pre>claude plugin marketplace add jmleetpl/surgical-cv-skills
+claude plugin install surgical-cv-skills@surgical-cv-skills</pre></div>
+    </div>
+    <div class="panel" id="t-mac" hidden>
+      <div class="codeblock"><button class="copy">복사</button><pre>git clone https://github.com/jmleetpl/surgical-cv-skills.git
+cp -R surgical-cv-skills/skills/* ~/.claude/skills/</pre></div>
+    </div>
+    <div class="panel" id="t-win" hidden>
+      <p>PowerShell에서 실행합니다.</p>
+      <div class="codeblock"><button class="copy">복사</button><pre>git clone https://github.com/jmleetpl/surgical-cv-skills.git
+Copy-Item -Recurse -Force .\surgical-cv-skills\skills\* "$HOME\.claude\skills\"</pre></div>
+    </div>
+    <div class="panel" id="t-web" hidden>
+      <ol>
+        <li><a href="https://github.com/jmleetpl/surgical-cv-skills/releases/latest">Releases</a>에서 zip 두 개를 받습니다.</li>
+        <li>claude.ai → <b>설정 → 기능 → Skills → 추가 → Skill 업로드</b>.</li>
+        <li>두 파일을 한 번에 끌어다 놓고 업로드합니다.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="note">확인: 새 세션에서 <code>/surgical-cv-study-design</code>을 입력했을 때 스킬이 자동완성되면 설치된 것입니다.</div>
+</section>
+
+<section class="step" id="first">
+  <div class="kicker">Step 2</div>
+  <h2>첫 실행</h2>
+  <p class="goal">수술명, 접근법, 규모, 임상 질문을 한 문단으로 주면 됩니다. 빠진 정보는 스킬이 한 번에 묻습니다.</p>
+  <div class="codeblock"><button class="copy">복사</button><pre>/surgical-cv-study-design
+간절제 영상 AI 연구를 설계해줘. 2개 기관, 로봇·복강경 180례, 1080p 30fps.
+Q1 절리 중 간정맥·글리슨 분할(장래 실시간 경고), Q2 수술 후 phase 인식, Q3 출혈 이벤트 탐지.</pre></div>
+  <div class="note">스킬이 처음 확인하는 것: 수술명·접근법·플랫폼, 기관·술자 수, 비디오 수·해상도·fps, 사용 시점(<b>online</b> 실시간 vs <b>offline</b> 수술 후), 정답 형태, 그리고 <b>기관 × 플랫폼 × 술식 교차표</b>.
+  기관마다 플랫폼이 다르면 "기관 간 외부검증"이 사실상 플랫폼 비교가 되기 때문입니다.</div>
+  <div class="card">
+    <b>입력 준비 체크</b> <span class="counter" id="in-count"></span>
+    <ul class="checklist" id="inputs" data-store="inputs">
+      <li><input type="checkbox" id="i1"><label for="i1">수술명과 접근법(개복/복강경/로봇 다공/단일공/내시경/현미경)</label></li>
+      <li><input type="checkbox" id="i2"><label for="i2">기관·플랫폼·술식별 증례 수 교차표</label></li>
+      <li><input type="checkbox" id="i3"><label for="i3">비디오 해상도·fps·녹화 장비 변경 이력</label></li>
+      <li><input type="checkbox" id="i4"><label for="i4">임상 질문: 이 AI가 줄이려는 사건(합병증·실수·지연)</label></li>
+      <li><input type="checkbox" id="i5"><label for="i5">사용 시점: online / offline</label></li>
+      <li><input type="checkbox" id="i6"><label for="i6">정답 형태: 프레임 라벨·구간·bbox·마스크·점</label></li>
+    </ul>
+  </div>
+</section>
+
+<section class="step" id="profile">
+  <div class="kicker">Step 3 · 스킬의 앞단</div>
+  <h2>수술 프로파일</h2>
+  <p class="goal">지표를 고르기 전에 수술을 먼저 정리합니다. 수술을 골라 스킬이 출발점으로 쓰는 프로파일 요약을 보세요. 임상 내용은 <b>초안</b>이며 연구팀이 확정합니다.</p>
+  <div class="card">
+    <label class="field" for="proc">수술</label>
+    <select id="proc"></select>
+    <dl class="kv" id="proc-out"></dl>
+  </div>
+</section>
+
+<section class="step" id="task">
+  <div class="kicker">Step 4</div>
+  <h2>임상 질문 → CV 과제 → 문제유형</h2>
+  <p class="goal">Metrics Reloaded는 문제를 네 유형(이미지 분류 ImLC, semantic 분할 SemS, 개체 검출 ObD, instance 분할 InS)으로 나눕니다. 유형을 잘못 고르는 것이 첫 번째 함정입니다.</p>
+  <div class="card">
+    <label class="field" for="taskSel">CV 과제</label>
+    <select id="taskSel"></select>
+    <dl class="kv" id="task-out"></dl>
+  </div>
+  <div class="note warn">같은 종류 개체를 세거나 구분해야 하면(그래스퍼 2개, 림프절 여러 개) SemS가 아니라 InS/ObD입니다. 이어진 혈관 나무는 한 구조로 보고 SemS로 둡니다.</div>
+</section>
+
+<section class="step" id="fingerprint">
+  <div class="kicker">Step 5</div>
+  <h2>Problem fingerprint</h2>
+  <p class="goal">데이터와 과제의 성질을 체크하면 지표·설계가 어떻게 바뀌는지 바로 보입니다. 스킬은 이 항목을 질문별로 채우고 실제 데이터로 확인합니다.</p>
+  <div class="toggles" id="fp"></div>
+  <div class="card"><b>설계에 반영할 것</b><ul id="fp-out"></ul></div>
+</section>
+
+<section class="step" id="apply">
+  <div class="kicker">Step 6</div>
+  <h2>지표 적용·데이터 계획</h2>
+  <p class="goal">좋은 지표를 골라도 계산·집계를 잘못하면 틀립니다. 설계서에 반드시 들어가는 항목입니다.</p>
+  <div class="tablewrap card">
+  <table>
+    <thead><tr><th>항목</th><th>원칙</th></tr></thead>
+    <tbody>
+      <tr><td>분석단위</td><td>환자(수술) 단위로 분할, 신뢰구간은 환자 단위 cluster bootstrap. 프레임을 독립 표본으로 쓰지 않음.</td></tr>
+      <tr><td>집계</td><td>분할·검출 지표는 프레임 → 비디오 → 전체. 수술당 판정이 하나뿐인 과제는 풀링해 계산하고 CI만 cluster bootstrap.</td></tr>
+      <tr><td>빈 프레임</td><td><b>2층 평가</b>: 모든 프레임에서 존재 판정 + 구조가 있는 프레임에서만 분할 지표. 둘 다 비면 정답으로 셈.</td></tr>
+      <tr><td>τ (NSD)</td><td>2D 영상은 픽셀 단위. 이중주석 프레임의 주석자 간 경계거리에서 도출하고 민감도 분석.</td></tr>
+      <tr><td>지연</td><td>프레임 처리량(30 fps면 ≤33 ms)과 임상적 경고 지연(사건→경고 허용 시간)을 구분.</td></tr>
+      <tr><td>보고</td><td>모든 지표에 CI, 원시 분포 시각화, 혼동행렬, 여러 seed의 변동. 100%·0%는 정확 구간.</td></tr>
+      <tr><td>정답 품질</td><td>이중주석 비율과 일치도, 블라인드 재주석이 AI 초안 없이 시작했는지 명시.</td></tr>
+      <tr><td>Phase 지표</td><td>relaxed boundary 평가 금지, 비디오별 vs 풀링 명시, 구간 지표(segmental F1@k, edit score) 추가.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="step" id="redflags">
+  <div class="kicker">Step 7</div>
+  <h2>레드플래그 자가점검</h2>
+  <p class="goal">설계서 마지막에 스킬이 돌리는 점검입니다. 내 연구 계획이 <b>피한</b> 항목에 체크하세요(브라우저에 저장됩니다).</p>
+  <div class="card">
+    <span class="counter" id="rf-count"></span>
+    <ul class="checklist" id="rf" data-store="rf"></ul>
+  </div>
+</section>
+
+<section class="step" id="example">
+  <div class="kicker">Step 8</div>
+  <h2>예시: 간절제 연구 설계 요약</h2>
+  <p class="goal">Step 2의 프롬프트로 시험 실행했을 때 나온 설계의 골자입니다(가상 시나리오).</p>
+  <div class="tablewrap card">
+  <table>
+    <thead><tr><th>질문</th><th>문제유형</th><th>주지표</th><th>프로파일이 바꾼 점</th></tr></thead>
+    <tbody>
+      <tr><td>Q1 간정맥·글리슨 분할</td><td>SemS(구조별)</td><td>구조가 있는 프레임의 clDice + 전 프레임 존재 판정 AP</td><td>혈관은 실질이 열린 뒤에만 보임 → 주장을 "노출된 구조 인식"으로 한정, 노출 전 경고는 범위 밖</td></tr>
+      <tr><td>Q2 phase 인식(offline)</td><td>ImLC + 시간적</td><td>비디오별 단계 F1 평균 + edit score·F1@k</td><td>해부학적 vs wedge 절제로 단계가 조건부 → 단계가 있는 비디오에서만 계산</td></tr>
+      <tr><td>Q3 출혈 이벤트</td><td>이벤트 검출</td><td>고정 오경보율에서 이벤트 Sensitivity</td><td>절리 중 미세 삼출은 늘 있음 → 중증도 정의 필수, 흡인기·거즈가 정답 단서가 되는 누설 점검</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note">산출물: <code>study_design/liver_resection_cv_design.md</code> — 수술 프로파일, fingerprint 표, 지표 계획, 적용 계획, 데이터·주석·분할, 표본수 근거, 보고 가이드라인(CLAIM 2024, TRIPOD+AI, DECIDE-AI, IDEAL), 레드플래그 결과, <code>[결정 필요]</code> 목록.</div>
+</section>
+
+<footer>
+  근거: Maier-Hein L, Reinke A, et al. Metrics Reloaded. <i>Nat Methods</i> 2024;21:195–212 (<a href="https://doi.org/10.1038/s41592-023-02151-z">doi</a>) ·
+  Reinke A, et al. <i>Nat Methods</i> 2024;21:182–194 (<a href="https://doi.org/10.1038/s41592-023-02150-0">doi</a>) ·
+  Funke I, et al. arXiv:2305.13961. 스킬은 원문을 의역·요약한 설계 보조 도구이며 공식 프레임워크나 임상·통계 판단을 대신하지 않습니다.
+  <br>MIT © 2026 Jeong-Moo Lee · <a href="https://github.com/jmleetpl/surgical-cv-skills">github.com/jmleetpl/surgical-cv-skills</a>
+</footer>
+</main>
+</div>
+
+<script>
+const PROCS = {
+  "담낭절제술": {route:"전용 스킬 /cholecystectomy-vision-study-design 사용", phases:"준비 → Calot 삼각 박리 → 클립·절단 → 담낭 박리 → 포장 → 세척·응고 → 회수 (Cholec80 7단계)", risk:"총담관, 담낭관, 담낭동맥, 우간동맥", check:"CVS(critical view of safety) — 클립 전 판정", event:"담관 손상, 출혈, 담즙 유출", data:"Cholec80, CholecT50, CholecSeg8k, Endoscapes2023, HeiChole, CholecInstanceSeg"},
+  "간절제 (복강경·로봇)": {phases:"간 유리 → 유입혈류 처리 → 절리선 표시(ICG·초음파) → 실질 절리 → 간정맥·지경 처리 → 지혈·담즙누출 확인 (wedge는 일부 단계 없음 = 조건부 단계)", risk:"중간·좌·우 간정맥, 단간정맥·하대정맥 분지, 남는 간의 글리슨 지경", check:"합의된 확인지점 없음 — 절리면이 구역 경계를 따르는지는 연구 가설", event:"절리 중 출혈(중증도 기준 필요), 담즙누출, 공기색전", data:"P2ILF(랜드마크·정합), PmLR50(공개 미확인)", note:"혈관은 실질이 열린 뒤에만 보임 → 영상만으로는 노출 전 경고 평가 불가"},
+  "간이식": {phases:"수혜자(주로 개복): 전간절제 → 무간기 → 간정맥 → 문맥 → 재관류 → 간동맥 → 담관 문합 / 공여자: 간문부 박리 → 담관 절단 위치 결정 → 실질 절리", risk:"공여자 남는 쪽 담관·간동맥·문맥, 문합부", check:"공여자 담관 절단 위치, 재관류 후 혈류", event:"담관 합병증, 출혈, 문합 협착·혈전", data:"확인된 공개 데이터 없음", note:"수혜자 수술은 개복 영상 — 카메라 이동·사람 노출 대비"},
+  "췌십이지장절제 / 원위췌절제": {phases:"Kocher → SMV 노출 → 담관 처리 → GDA 처리 → 췌장 절단 → SMA 박리 → 재건", risk:"SMA, SMV/PV, 총간동맥, GDA, 변이 우간동맥", check:"GDA 결찰 전 클램핑으로 간동맥 흐름 확인", event:"주요 혈관 손상, 췌장루, 지연 출혈", data:"확인된 공개 데이터 없음"},
+  "위절제 (복강경·로봇)": {phases:"대망 박리(4sb) → 6 → 5·십이지장 절단 → 상췌장 림프절(8a·12a·7·9·11p) → 소만(1·3) → 위 절단 → 재건", risk:"췌장 상연, 총간·비장·좌위동맥, 문맥", check:"상췌장 박리 시 췌장 손상 회피", event:"췌장 손상→췌장루, 혈관 손상", data:"확인된 공개 데이터 없음 — 다기관 협력이 현실적"},
+  "대장 (CME/TME)": {phases:"IMA 박리·결찰 → 좌측결장 유리 → 직장간막 후방·측방·전방 박리 → 절단 → 문합", risk:"좌측 요관·성선혈관, 하복신경총, 골반신경총", check:"IMA 결찰 전 요관·신경 확인, TME 박리면 유지", event:"요관 손상, 자율신경 손상, CRM 양성, 문합누출", data:"HeiCo/ROBUST-MIS, DSAD(로봇 직장 11구조)"},
+  "식도절제 (RAMIE)": {phases:"흉부 식도 유리 → 좌·우 RLN 주위 림프절 → 흉관 처리 → 위관 형성 → 문합", risk:"반회후두신경(RLN), 흉관, 기관 막양부, 대동맥", check:"RLN 주위 박리 시 신경 확인·열손상 회피", event:"RLN 마비, 유미흉, 문합누출", data:"단계 연구는 있으나 공개 확인 안 됨"},
+  "서혜부 탈장 (TAPP/TEP)": {phases:"복막 flap/전복막 공간 → Cooper 인대·하복벽혈관 → MPO 노출 → 탈장낭 처리 → 메쉬 → 복막 봉합", risk:"외장골 혈관(triangle of doom), 신경(triangle of pain), 정관·고환혈관", check:"메쉬 거치 전 MPO 전체 노출", event:"재발, 만성 통증, 혈관 손상", data:"공개 데이터 확인 안 됨"},
+  "충수절제": {phases:"탐색 → 간막 처리 → 기저부 결찰·절단 → 회수 → 세척", risk:"맹장 기저부, 회장", check:"—", event:"염증 등급 오판", data:"Appendix300(염증 등급)", note:"등급은 서열형 → Expected Cost(EC) 지표"},
+  "갑상선": {phases:"피판 → 상극 혈관 → 측방 박리 → RLN 확인·추적 → 부갑상선 보존 → Berry 인대", risk:"RLN, 상후두신경 외지, 부갑상선", check:"RLN 확인, 부갑상선 확인(자가형광 등)", event:"RLN 마비, 저칼슘혈증", data:"공개 데이터 확인 안 됨", note:"부갑상선은 작은 구조 → ObD(점·중심 기준)"},
+  "비만수술 (RYGB/Sleeve)": {phases:"위 소낭 → 위공장 문합 → 공장공장 문합 → 간막 결손 봉합", risk:"His각, 비장", check:"—", event:"누출, 협착, 내부 탈장", data:"MultiBypass140(2기관 140편), Bypass40"},
+  "로봇 전립선절제 (RARP)": {phases:"Retzius → 방광경부 → 정낭 → 후방 박리 → NVB 보존 → 첨부 → 문합", risk:"신경혈관다발, 외요도괄약근, 직장", check:"NVB 보존", event:"요실금, 발기부전, 절제연 양성", data:"SAR-RARP50, GraSP"},
+  "개복수술 일반": {phases:"수술별 프로파일 템플릿으로 작성", risk:"수술별", check:"수술별", event:"수술별", data:"EgoSurgery-Phase/-Tool(머리착용 카메라)", note:"카메라 이동·손 가림·의료진 얼굴 노출 → ROI 정의, 가림 비율 측정, 개인정보 처리 계획 필수"}
+};
+const TASKS = {
+  "단계(phase/step) 인식": ["ImLC(프레임) + 시간적 측면은 범위 밖","비디오별 단계 Precision/Recall/F1·Jaccard → 평균±SD, BA 또는 MCC, 혼동행렬, segmental F1@k·edit score","online/offline·평활 여부 명시, relaxed 평가 금지, 여러 seed"],
+  "안전 확인지점 판정 (CVS 등)": ["ImLC (기준별 이진 + 전체)","연구 목적: AUROC / 경고 목적: 고정 운영점(PPV·시간당 오경보), 보정","판정 시점·창 사전 정의, 정답 암시 단서 배제, 수술당 판정 1개면 풀링 + cluster CI"],
+  "기구 존재": ["ImLC (라벨별 이진)","라벨별 AUROC + AP","드문 기구는 AP 기준선(유병률) 함께, 로봇 UI의 기구명 표시는 누설"],
+  "기구 검출 (bbox)": ["ObD","위치 기준(Box IoU, 임계 명시) + Greedy-by-Score + AP 또는 FROC","Accuracy·Specificity·AUROC 금지(TN 없음)"],
+  "기구 분할": ["같은 종류 동시 출현 → InS, 아니면 SemS","InS: AP(정의 명시) 또는 PQ + 개체별 DSC/NSD · SemS: DSC + NSD","SemS로 두면 거리 지표 금지"],
+  "큰 장기 분할 (간·위·췌장)": ["SemS","DSC + NSD 또는 MASD","경계가 지방에 묻히면 NSD(τ)"],
+  "관형 위험구조 분할 (혈관·관·요관·신경)": ["SemS(이어진 나무 = 한 구조) / 개체를 세야 하면 InS","DSC + clDice + 경계 지표, 크기별 층화","작은 구조는 DSC가 몇 픽셀에도 흔들림"],
+  "작은 구조 검출 (부갑상선·림프절)": ["ObD","점·중심 위치 기준 + AP/FROC","병리 확인 없는 정답은 퍼지"],
+  "박리면·위험 영역": ["SemS (퍼지 정답)","DSC/Fβ(놓침이 위험하면 재현율 가중) + 경계 지표","다중 주석자 정답 융합은 Metrics Reloaded 범위 밖"],
+  "출혈·연기 등 이벤트": ["프레임 ImLC / 이벤트 검출(범위 밖)","고정 오경보율에서 이벤트 Sensitivity, 탐지 지연","이벤트·중증도 정의와 매칭 시간창 사전 지정"],
+  "술기 평가 (GEARS·OSATS)": ["회귀/서열 — 범위 밖","MAE, ICC·Bland–Altman / 서열 범주면 EC","정답 평가자 간 ICC 함께"],
+  "비디오 → 술후 결과 예측": ["ImLC(비디오 수준) + 임상예측모형","AUROC, 보정(slope·intercept·Brier), Net Benefit","TRIPOD+AI 보고"]
+};
+const FPS = [
+  ["emp","빈 정답 프레임이 많다","FP4.6 · 구조가 안 보이는 프레임","2층 평가: 전 프레임 존재 판정(AUROC/AP, 오탐률) + 구조 있는 프레임에서만 분할 지표"],
+  ["tub","가늘고 긴(관형) 구조","FP3.3 · 혈관·관·신경","clDice와 연결성 지표 추가, 참조구현에 없으면 자체 구현 + 단위 테스트"],
+  ["small","작은 구조","FP3.1 · 몇 픽셀 폭","DSC 불안정 → 경계·검출 관점 지표 병행, 크기별 층화 보고"],
+  ["multi","같은 종류가 한 화면에 여러 개","FP3.5 · 그래스퍼 2개, 림프절","문제유형을 InS 또는 ObD로 (SemS + 거리 지표 금지)"],
+  ["noisy","주석자 간 경계 차이가 크다","FP4.3.1","NSD(τ는 주석자 간 경계거리에서 도출), 결과 자릿수 절제"],
+  ["imb","클래스 불균형","FP4.1 · 짧은 단계, 드문 기구","Accuracy 단독 금지 → BA·MCC·AP, 클래스별 보고"],
+  ["cost","오류 비용이 불균등","FP2.5.2 · 위험구조 놓침 > 과검출","Expected Cost(EC) 또는 재현율 가중 Fβ, 비용행렬 합의"],
+  ["prob","확률을 경고·결정에 쓴다","FP2.7.1","보정 평가(Brier 등) 필수, 실제 결정이면 Net Benefit"],
+  ["online","장래 실시간 사용","원칙 8","지금부터 인과적 평가 + 프레임 처리량·경고 지연 둘 다 정의"],
+  ["single","단일기관 / 술자 2–3명","원칙 5","시간적 분할로 대체하고 외부검증 부재를 한계로 명시, 술자 단위 bootstrap 무의미"],
+  ["icg","형광(ICG) 모드가 섞임","approach_modifiers","모드를 메타데이터로 기록하고 모드별 층화 평가"],
+  ["open","개복 영상","approach_modifiers","ROI 정의, 가림 비율 측정, 사람 노출 개인정보 처리 계획"]
+];
+const RFS = [
+  ["RF0","수술 프로파일과 AI가 줄이려는 사건을 정의했다"],
+  ["RF1","프레임 단위 무작위 분할을 하지 않고 환자 단위로 분할했다"],
+  ["RF2","분할 과제에 Dice만 쓰지 않고 경계 지표를 함께 쓴다"],
+  ["RF3","같은 클래스 다중 개체를 SemS + 거리 지표로 평가하지 않는다"],
+  ["RF4","검출 과제에 Accuracy·Specificity·AUROC를 쓰지 않는다"],
+  ["RF5","불균형 분류에 Accuracy를 단독 헤드라인으로 쓰지 않는다"],
+  ["RF6","확률을 결정에 쓰면 보정을 평가한다"],
+  ["RF7","빈 정답·빈 예측 처리 규칙을 적었다"],
+  ["RF8","주석자 간 일치도와 블라인드 조건을 계획했다"],
+  ["RF9","시간축 과제의 online/offline·기준점·창을 정했다"],
+  ["RF10","실시간 목적이면 인과적 평가와 지연을 평가한다"],
+  ["RF11","임계값·후처리를 테스트셋에서 정하지 않는다"],
+  ["RF12","외부검증 또는 시간적 분할과 한계 기술이 있다"],
+  ["RF13","범위 밖 과제를 Metrics Reloaded만으로 정당화하지 않는다"],
+  ["RF14","정답을 암시하는 단서를 평가 입력에서 뺐다"],
+  ["RF15","테스트 프레임을 구조가 보이는 프레임만으로 고르지 않았다"],
+  ["RF16","수술당 판정 1개 과제에 비디오별 AUROC를 계산하지 않는다"],
+  ["RF17","공개 데이터셋과 정의가 다르면 대응표를 만들었다"],
+  ["RF18","접근법 특이 위험(사람 노출, UI 오버레이)을 반영했다"]
+];
+const store = {
+  get(k){try{return JSON.parse(localStorage.getItem("scv-"+k))||{}}catch(e){return {}}},
+  set(k,v){try{localStorage.setItem("scv-"+k,JSON.stringify(v))}catch(e){}}
+};
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+// tabs
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  b.parentElement.querySelectorAll("button").forEach(x => x.setAttribute("aria-selected", x === b));
+  b.closest(".card").querySelectorAll(".panel").forEach(p => p.hidden = p.id !== b.dataset.tab);
+}));
+// copy
+document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", async () => {
+  const t = b.nextElementSibling.textContent;
+  try { await navigator.clipboard.writeText(t); b.textContent = "복사됨"; b.classList.add("done"); }
+  catch(e){ b.textContent = "선택해 복사"; }
+  setTimeout(() => { b.textContent = "복사"; b.classList.remove("done"); }, 1500);
+}));
+// procedures
+const procSel = document.getElementById("proc");
+Object.keys(PROCS).forEach(k => procSel.add(new Option(k, k)));
+function showProc(){
+  const p = PROCS[procSel.value];
+  const rows = [["라우팅",p.route],["단계 초안",p.phases],["핵심 위험구조",p.risk],["안전 확인지점",p.check],["줄이려는 사건",p.event],["공개 데이터",p.data],["주의",p.note]];
+  document.getElementById("proc-out").innerHTML = rows.filter(r => r[1]).map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join("");
+}
+procSel.addEventListener("change", showProc);
+procSel.value = "간절제 (복강경·로봇)"; showProc();
+// tasks
+const taskSel = document.getElementById("taskSel");
+Object.keys(TASKS).forEach(k => taskSel.add(new Option(k, k)));
+function showTask(){
+  const t = TASKS[taskSel.value];
+  document.getElementById("task-out").innerHTML = `<dt>문제유형</dt><dd><b>${esc(t[0])}</b></dd><dt>지표 묶음</dt><dd>${esc(t[1])}</dd><dt>주의</dt><dd>${esc(t[2])}</dd>`;
+}
+taskSel.addEventListener("change", showTask); showTask();
+// fingerprint
+const fpBox = document.getElementById("fp"), fpOut = document.getElementById("fp-out");
+const fpState = store.get("fp");
+FPS.forEach(([id,label,sub]) => {
+  const l = document.createElement("label"); l.className = "toggle";
+  l.innerHTML = `<input type="checkbox" data-id="${id}"><span>${esc(label)}<small>${esc(sub)}</small></span>`;
+  l.querySelector("input").checked = !!fpState[id];
+  fpBox.appendChild(l);
+});
+function showFp(){
+  const on = {}; fpBox.querySelectorAll("input").forEach(i => on[i.dataset.id] = i.checked);
+  store.set("fp", on);
+  const items = FPS.filter(f => on[f[0]]).map(f => `<li><b>${esc(f[1])}</b> → ${esc(f[3])}</li>`);
+  items.unshift("<li><b>항상</b> → 환자(수술) 단위 분할과 cluster bootstrap CI (FP4.5: 프레임은 독립 표본이 아님)</li>");
+  fpOut.innerHTML = items.join("");
+}
+fpBox.addEventListener("change", showFp); showFp();
+// checklists
+function bindChecklist(listId, countId, key){
+  const ul = document.getElementById(listId), state = store.get(key);
+  const boxes = ul.querySelectorAll("input");
+  boxes.forEach(b => b.checked = !!state[b.id]);
+  const upd = () => {
+    const s = {}; let n = 0; boxes.forEach(b => { s[b.id] = b.checked; if (b.checked) n++; });
+    store.set(key, s);
+    document.getElementById(countId).textContent = `${n} / ${boxes.length} 완료`;
+  };
+  ul.addEventListener("change", upd); upd();
+}
+document.getElementById("rf").innerHTML = RFS.map(([c,t]) => `<li><input type="checkbox" id="rf-${c}"><span class="code">${c}</span><label for="rf-${c}">${esc(t)}</label></li>`).join("");
+bindChecklist("inputs","in-count","inputs");
+bindChecklist("rf","rf-count","rf");
+// toc active + progress
+const links = [...document.querySelectorAll("#toc a")];
+const secs = links.map(a => document.querySelector(a.getAttribute("href")));
+function onScroll(){
+  let idx = 0;
+  secs.forEach((s,i) => { if (s.getBoundingClientRect().top < window.innerHeight * 0.35) idx = i; });
+  links.forEach((a,i) => a.classList.toggle("active", i === idx));
+  const h = document.documentElement;
+  document.getElementById("bar").style.width = Math.min(100, (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100) + "%";
+}
+document.addEventListener("scroll", onScroll, {passive:true}); onScroll();
+// theme
+document.getElementById("themebtn").addEventListener("click", () => {
+  const r = document.documentElement;
+  const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark";
+});
+</script>
+</body>
+</html>
